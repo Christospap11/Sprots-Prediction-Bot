@@ -1,0 +1,1 @@
+2025-06-19 16:06:25,902 - src.data.storage.init_db - ERROR - init_db.py:62 - Database connection test failed: Textual SQL expression 'SELECT 1' should be explicitly declared as text('SELECT 1')

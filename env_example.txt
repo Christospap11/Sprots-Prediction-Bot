@@ -1,0 +1,40 @@
+# Copy this file to .env and fill in your actual API keys
+
+# Database Configuration
+DATABASE_URL=sqlite:///data/football_predictions.db
+
+# API Keys (Get these from the respective services)
+FOOTBALL_API_KEY=your_football_api_key_here
+ODDS_API_KEY=your_odds_api_key_here  
+WEATHER_API_KEY=your_weather_api_key_here
+
+# API URLs
+FOOTBALL_API_BASE_URL=https://api.football-data.org/v4
+ODDS_API_BASE_URL=https://api.the-odds-api.com/v4
+WEATHER_API_BASE_URL=https://api.openweathermap.org/data/2.5
+
+# Model Configuration
+MODEL_RETRAIN_INTERVAL_DAYS=7
+MIN_CONFIDENCE_THRESHOLD=0.6
+MAX_DAILY_BETS=5
+
+# Betting Configuration  
+INITIAL_BANKROLL=1000.0
+MAX_BET_PERCENTAGE=0.05
+KELLY_CRITERION_FRACTION=0.25
+MIN_ODDS=1.5
+MAX_ODDS=5.0
+
+# Risk Management
+MAX_DAILY_LOSS_PERCENTAGE=0.10
+MAX_DRAWDOWN_PERCENTAGE=0.20
+
+# Application Settings
+DEBUG=True
+LOG_LEVEL=INFO
+API_HOST=0.0.0.0
+API_PORT=8000
+
+# Data Collection Settings
+COLLECT_DATA_INTERVAL_HOURS=6
+LEAGUES=Premier League,La Liga,Bundesliga,Serie A,Ligue 1 

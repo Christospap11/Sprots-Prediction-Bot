@@ -1,0 +1,264 @@
+2025-06-19 16:06:25,613 - root - INFO - logging_config.py:116 - Logging configuration completed
+2025-06-19 16:06:25,614 - __main__ - INFO - setup_and_test.py:96 - Testing logging system...
+2025-06-19 16:06:25,798 - src.data.storage.init_db - INFO - init_db.py:31 - Creating database tables...
+2025-06-19 16:06:25,803 - sqlalchemy.engine.Engine - INFO - base.py:1091 - BEGIN (implicit)
+2025-06-19 16:06:25,804 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("teams")
+2025-06-19 16:06:25,805 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,809 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA temp.table_info("teams")
+2025-06-19 16:06:25,810 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,811 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("matches")
+2025-06-19 16:06:25,811 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,812 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA temp.table_info("matches")
+2025-06-19 16:06:25,813 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,813 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("odds")
+2025-06-19 16:06:25,814 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,815 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA temp.table_info("odds")
+2025-06-19 16:06:25,815 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,816 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("team_stats")
+2025-06-19 16:06:25,816 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,817 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA temp.table_info("team_stats")
+2025-06-19 16:06:25,818 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,818 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("predictions")
+2025-06-19 16:06:25,819 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,820 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA temp.table_info("predictions")
+2025-06-19 16:06:25,822 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,822 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("betting_records")
+2025-06-19 16:06:25,823 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,824 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA temp.table_info("betting_records")
+2025-06-19 16:06:25,824 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,825 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("model_performance")
+2025-06-19 16:06:25,826 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,827 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA temp.table_info("model_performance")
+2025-06-19 16:06:25,827 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,829 - sqlalchemy.engine.Engine - INFO - base.py:1901 - 
+CREATE TABLE teams (
+	id INTEGER NOT NULL, 
+	name VARCHAR(100) NOT NULL, 
+	league VARCHAR(50) NOT NULL, 
+	country VARCHAR(50), 
+	founded INTEGER, 
+	venue VARCHAR(100), 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	UNIQUE (name)
+)
+
+
+2025-06-19 16:06:25,831 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [no key 0.00243s] ()
+2025-06-19 16:06:25,835 - sqlalchemy.engine.Engine - INFO - base.py:1901 - 
+CREATE TABLE model_performance (
+	id INTEGER NOT NULL, 
+	model_name VARCHAR(50) NOT NULL, 
+	model_version VARCHAR(50) NOT NULL, 
+	accuracy FLOAT, 
+	precision FLOAT, 
+	recall FLOAT, 
+	f1_score FLOAT, 
+	roc_auc FLOAT, 
+	total_bets INTEGER, 
+	winning_bets INTEGER, 
+	total_profit_loss FLOAT, 
+	roi FLOAT, 
+	sharpe_ratio FLOAT, 
+	max_drawdown FLOAT, 
+	training_start DATETIME, 
+	training_end DATETIME, 
+	training_samples INTEGER, 
+	test_samples INTEGER, 
+	created_at DATETIME, 
+	PRIMARY KEY (id)
+)
+
+
+2025-06-19 16:06:25,840 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [no key 0.00486s] ()
+2025-06-19 16:06:25,844 - sqlalchemy.engine.Engine - INFO - base.py:1901 - 
+CREATE TABLE matches (
+	id INTEGER NOT NULL, 
+	home_team_id INTEGER NOT NULL, 
+	away_team_id INTEGER NOT NULL, 
+	match_date DATETIME NOT NULL, 
+	league VARCHAR(50) NOT NULL, 
+	season VARCHAR(10) NOT NULL, 
+	matchday INTEGER, 
+	home_score INTEGER, 
+	away_score INTEGER, 
+	home_halftime_score INTEGER, 
+	away_halftime_score INTEGER, 
+	status VARCHAR(20), 
+	referee VARCHAR(100), 
+	attendance INTEGER, 
+	venue VARCHAR(100), 
+	temperature FLOAT, 
+	humidity FLOAT, 
+	wind_speed FLOAT, 
+	weather_condition VARCHAR(50), 
+	created_at DATETIME, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(home_team_id) REFERENCES teams (id), 
+	FOREIGN KEY(away_team_id) REFERENCES teams (id)
+)
+
+
+2025-06-19 16:06:25,849 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [no key 0.00443s] ()
+2025-06-19 16:06:25,853 - sqlalchemy.engine.Engine - INFO - base.py:1901 - 
+CREATE TABLE team_stats (
+	id INTEGER NOT NULL, 
+	team_id INTEGER NOT NULL, 
+	season VARCHAR(10) NOT NULL, 
+	matches_played INTEGER, 
+	wins INTEGER, 
+	draws INTEGER, 
+	losses INTEGER, 
+	goals_for INTEGER, 
+	goals_against INTEGER, 
+	home_wins INTEGER, 
+	home_draws INTEGER, 
+	home_losses INTEGER, 
+	away_wins INTEGER, 
+	away_draws INTEGER, 
+	away_losses INTEGER, 
+	form_points FLOAT, 
+	recent_goals_for FLOAT, 
+	recent_goals_against FLOAT, 
+	updated_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(team_id) REFERENCES teams (id)
+)
+
+
+2025-06-19 16:06:25,858 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [no key 0.00507s] ()
+2025-06-19 16:06:25,861 - sqlalchemy.engine.Engine - INFO - base.py:1901 - 
+CREATE TABLE odds (
+	id INTEGER NOT NULL, 
+	match_id INTEGER NOT NULL, 
+	bookmaker VARCHAR(50) NOT NULL, 
+	home_win_odds FLOAT, 
+	draw_odds FLOAT, 
+	away_win_odds FLOAT, 
+	over_2_5_odds FLOAT, 
+	under_2_5_odds FLOAT, 
+	btts_yes_odds FLOAT, 
+	btts_no_odds FLOAT, 
+	odds_time DATETIME NOT NULL, 
+	created_at DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(match_id) REFERENCES matches (id)
+)
+
+
+2025-06-19 16:06:25,864 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [no key 0.00291s] ()
+2025-06-19 16:06:25,868 - sqlalchemy.engine.Engine - INFO - base.py:1901 - 
+CREATE TABLE predictions (
+	id INTEGER NOT NULL, 
+	match_id INTEGER NOT NULL, 
+	predicted_outcome VARCHAR(10), 
+	home_win_probability FLOAT, 
+	draw_probability FLOAT, 
+	away_win_probability FLOAT, 
+	predicted_home_score FLOAT, 
+	predicted_away_score FLOAT, 
+	confidence FLOAT, 
+	model_version VARCHAR(50), 
+	features_used TEXT, 
+	recommended_bet VARCHAR(50), 
+	recommended_stake FLOAT, 
+	expected_value FLOAT, 
+	prediction_time DATETIME, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(match_id) REFERENCES matches (id)
+)
+
+
+2025-06-19 16:06:25,872 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [no key 0.00413s] ()
+2025-06-19 16:06:25,876 - sqlalchemy.engine.Engine - INFO - base.py:1901 - 
+CREATE TABLE betting_records (
+	id INTEGER NOT NULL, 
+	match_id INTEGER, 
+	bet_type VARCHAR(50) NOT NULL, 
+	stake FLOAT NOT NULL, 
+	odds FLOAT NOT NULL, 
+	bookmaker VARCHAR(50), 
+	result VARCHAR(10), 
+	profit_loss FLOAT, 
+	bet_placed_at DATETIME, 
+	settled_at DATETIME, 
+	bankroll_before FLOAT, 
+	bankroll_after FLOAT, 
+	PRIMARY KEY (id), 
+	FOREIGN KEY(match_id) REFERENCES matches (id)
+)
+
+
+2025-06-19 16:06:25,879 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [no key 0.00328s] ()
+2025-06-19 16:06:25,883 - sqlalchemy.engine.Engine - INFO - base.py:1134 - COMMIT
+2025-06-19 16:06:25,883 - src.data.storage.init_db - INFO - init_db.py:33 - Database tables created successfully!
+2025-06-19 16:06:25,885 - src.data.storage.init_db - INFO - init_db.py:31 - Creating database tables...
+2025-06-19 16:06:25,886 - sqlalchemy.engine.Engine - INFO - base.py:1091 - BEGIN (implicit)
+2025-06-19 16:06:25,888 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("teams")
+2025-06-19 16:06:25,891 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,892 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("matches")
+2025-06-19 16:06:25,893 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,894 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("odds")
+2025-06-19 16:06:25,894 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,895 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("team_stats")
+2025-06-19 16:06:25,896 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,896 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("predictions")
+2025-06-19 16:06:25,897 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,898 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("betting_records")
+2025-06-19 16:06:25,898 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,899 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("model_performance")
+2025-06-19 16:06:25,900 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:25,901 - sqlalchemy.engine.Engine - INFO - base.py:1134 - COMMIT
+2025-06-19 16:06:25,902 - src.data.storage.init_db - INFO - init_db.py:33 - Database tables created successfully!
+2025-06-19 16:06:25,902 - src.data.storage.init_db - ERROR - init_db.py:62 - Database connection test failed: Textual SQL expression 'SELECT 1' should be explicitly declared as text('SELECT 1')
+2025-06-19 16:06:51,060 - root - INFO - logging_config.py:116 - Logging configuration completed
+2025-06-19 16:06:51,061 - __main__ - INFO - setup_and_test.py:96 - Testing logging system...
+2025-06-19 16:06:51,245 - src.data.storage.init_db - INFO - init_db.py:31 - Creating database tables...
+2025-06-19 16:06:51,247 - sqlalchemy.engine.Engine - INFO - base.py:1091 - BEGIN (implicit)
+2025-06-19 16:06:51,248 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("teams")
+2025-06-19 16:06:51,248 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,249 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("matches")
+2025-06-19 16:06:51,250 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,251 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("odds")
+2025-06-19 16:06:51,252 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,252 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("team_stats")
+2025-06-19 16:06:51,253 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,254 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("predictions")
+2025-06-19 16:06:51,254 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,255 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("betting_records")
+2025-06-19 16:06:51,256 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,256 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("model_performance")
+2025-06-19 16:06:51,257 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,258 - sqlalchemy.engine.Engine - INFO - base.py:1134 - COMMIT
+2025-06-19 16:06:51,258 - src.data.storage.init_db - INFO - init_db.py:33 - Database tables created successfully!
+2025-06-19 16:06:51,259 - src.data.storage.init_db - INFO - init_db.py:31 - Creating database tables...
+2025-06-19 16:06:51,260 - sqlalchemy.engine.Engine - INFO - base.py:1091 - BEGIN (implicit)
+2025-06-19 16:06:51,261 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("teams")
+2025-06-19 16:06:51,262 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,264 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("matches")
+2025-06-19 16:06:51,265 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,266 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("odds")
+2025-06-19 16:06:51,266 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,267 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("team_stats")
+2025-06-19 16:06:51,268 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,269 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("predictions")
+2025-06-19 16:06:51,270 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,270 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("betting_records")
+2025-06-19 16:06:51,271 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,272 - sqlalchemy.engine.Engine - INFO - base.py:1901 - PRAGMA main.table_info("model_performance")
+2025-06-19 16:06:51,272 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [raw sql] ()
+2025-06-19 16:06:51,273 - sqlalchemy.engine.Engine - INFO - base.py:1134 - COMMIT
+2025-06-19 16:06:51,274 - src.data.storage.init_db - INFO - init_db.py:33 - Database tables created successfully!
+2025-06-19 16:06:51,274 - sqlalchemy.engine.Engine - INFO - base.py:1091 - BEGIN (implicit)
+2025-06-19 16:06:51,275 - sqlalchemy.engine.Engine - INFO - base.py:1901 - SELECT 1
+2025-06-19 16:06:51,276 - sqlalchemy.engine.Engine - INFO - base.py:1906 - [generated in 0.00063s] ()
+2025-06-19 16:06:51,277 - src.data.storage.init_db - INFO - init_db.py:57 - Database connection test successful!
+2025-06-19 16:06:51,277 - sqlalchemy.engine.Engine - INFO - base.py:1117 - ROLLBACK
+2025-06-19 16:07:05,297 - root - INFO - logging_config.py:116 - Logging configuration completed
+2025-06-19 16:23:57,938 - root - INFO - logging_config.py:116 - Logging configuration completed
+2025-06-19 16:24:17,522 - root - INFO - logging_config.py:116 - Logging configuration completed
+2025-06-19 16:24:17,552 - __main__ - INFO - test_api_keys.py:182 - ============================================================
+2025-06-19 16:24:17,554 - __main__ - INFO - test_api_keys.py:184 - 
+2025-06-19 16:36:22,595 - root - INFO - logging_config.py:116 - Logging configuration completed
