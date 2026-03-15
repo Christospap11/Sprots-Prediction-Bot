@@ -73,8 +73,12 @@ class StatBadge(ctk.CTkFrame):
                          corner_radius=10, border_width=1,
                          border_color=COLORS["border"])
         clr = color or COLORS["accent"]
-        ctk.CTkLabel(self, text=value, font=FONT_STAT, text_color=clr).pack(pady=(10, 2))
+        self.value_label = ctk.CTkLabel(self, text=value, font=FONT_STAT, text_color=clr)
+        self.value_label.pack(pady=(10, 2))
         ctk.CTkLabel(self, text=label, font=FONT_TINY, text_color=COLORS["text_secondary"]).pack(pady=(0, 10))
+
+    def set_value(self, val: str):
+        self.value_label.configure(text=val)
 
 
 class SectionHeader(ctk.CTkLabel):
@@ -151,7 +155,6 @@ class PremiumTable(ctk.CTkScrollableFrame):
     def add_row(self, values, tag=None):
         idx = len(self._row_frames)
         bg = self.ROW_EVEN if idx % 2 == 0 else self.ROW_ODD
-        # Override by tag
         if tag == "live":
             bg = "#1a1030"
         elif tag == "win":
@@ -163,30 +166,37 @@ class PremiumTable(ctk.CTkScrollableFrame):
         row.pack(fill="x", padx=4, pady=1)
         self._row_frames.append(row)
 
+        labels = []
         for i, (val, w) in enumerate(zip(values, self.col_widths)):
             txt = str(val)
             color = COLORS["text_primary"]
-            # Colour highlights
             if txt in ("LIVE", "IN_PLAY", "Live"):
                 color = COLORS["accent_red"]
-            elif txt in ("FINISHED", "FT"):
+            elif txt in ("FINISHED", "FT", "TIMED"):
                 color = COLORS["text_muted"]
             elif txt.startswith("✅"):
                 color = COLORS["accent_green"]
             elif txt.startswith("❌"):
                 color = COLORS["accent_red"]
-            ctk.CTkLabel(
+            elif txt.startswith("⚠"):
+                color = COLORS["accent_yellow"]
+            lbl = ctk.CTkLabel(
                 row, text=txt, font=FONT_SMALL,
                 text_color=color, width=w, anchor="w"
-            ).grid(row=0, column=i, padx=(12, 4), pady=7, sticky="w")
+            )
+            lbl.grid(row=0, column=i, padx=(12, 4), pady=7, sticky="w")
+            labels.append(lbl)
 
-        # Hover effect
+        # Hover effect – bind on frame AND all child labels so mouse events register
         def on_enter(e, r=row, b=bg):
             r.configure(fg_color=self.ROW_HOVER)
         def on_leave(e, r=row, b=bg):
             r.configure(fg_color=b)
         row.bind("<Enter>", on_enter)
         row.bind("<Leave>", on_leave)
+        for lbl in labels:
+            lbl.bind("<Enter>", on_enter)
+            lbl.bind("<Leave>", on_leave)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -643,23 +653,27 @@ class ModernFootballGUI:
     def _update_dashboard_stats(self):
         conn = self.get_database_connection()
         if not conn:
-            self.sidebar_status.configure(text="⚠ DB unavailable")
+            self.sidebar_status.configure(text="⚠ No database yet")
             return
         try:
             cur = conn.cursor()
-            cur.execute("SELECT COUNT(*) FROM teams");  teams = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM matches"); matches = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM odds");    odds = cur.fetchone()[0]
-            cur.execute("SELECT COUNT(*) FROM matches WHERE status IN ('IN_PLAY','PAUSED','HALFTIME','Live')")
-            live = cur.fetchone()[0]
-            self.stat_teams.children["!ctklabel"].configure(text=str(teams))
-            self.stat_matches.children["!ctklabel"].configure(text=str(matches))
-            self.stat_odds.children["!ctklabel"].configure(text=str(odds))
-            self.stat_live.children["!ctklabel"].configure(text=str(live))
-            self.sidebar_status.configure(
-                text=f"✓ {matches} matches  •  {live} live")
+            # check tables exist
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+            tables = {r[0] for r in cur.fetchall()}
+            teams   = 0; matches = 0; odds_n = 0; live = 0
+            if "teams"   in tables: cur.execute("SELECT COUNT(*) FROM teams");   teams   = cur.fetchone()[0]
+            if "matches" in tables: cur.execute("SELECT COUNT(*) FROM matches"); matches = cur.fetchone()[0]
+            if "odds"    in tables: cur.execute("SELECT COUNT(*) FROM odds");    odds_n  = cur.fetchone()[0]
+            if "matches" in tables:
+                cur.execute("SELECT COUNT(*) FROM matches WHERE status IN ('IN_PLAY','PAUSED','HALFTIME','Live')")
+                live = cur.fetchone()[0]
+            self.stat_teams.set_value(str(teams))
+            self.stat_matches.set_value(str(matches))
+            self.stat_odds.set_value(str(odds_n))
+            self.stat_live.set_value(str(live))
+            self.sidebar_status.configure(text=f"✓ {matches} matches  •  {live} live")
         except Exception as e:
-            self.sidebar_status.configure(text="DB error")
+            self.sidebar_status.configure(text=f"DB error: {str(e)[:20]}")
         finally:
             conn.close()
 
@@ -668,14 +682,24 @@ class ModernFootballGUI:
         self.dash_matches_table.clear_rows()
         conn = self.get_database_connection()
         if not conn:
+            self.dash_matches_table.add_row(("No database found.", "", "", "", "Run monitor first."))
+            self._update_dashboard_preds()
             return
         try:
             cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='matches'")
+            if not cur.fetchone():
+                self.dash_matches_table.add_row(("No data yet.", "", "", "", "Run monitor_with_database.py"))
+                self._update_dashboard_preds()
+                return
             cur.execute("""
                 SELECT match_date, home_team, away_team, home_score, away_score, status
                 FROM matches ORDER BY match_date DESC LIMIT 20
             """)
-            for row in cur.fetchall():
+            rows = cur.fetchall()
+            if not rows:
+                self.dash_matches_table.add_row(("No matches collected yet.", "", "", "", ""))
+            for row in rows:
                 date = (row[0] or "")[:10]
                 score = f"{row[3]} – {row[4]}" if row[3] is not None else "vs"
                 tag = "live" if row[5] in ("IN_PLAY", "PAUSED", "HALFTIME", "Live") else None
@@ -683,9 +707,9 @@ class ModernFootballGUI:
                     (date, row[1] or "?", score, row[2] or "?", row[5] or "?"), tag=tag)
         except Exception as e:
             print(f"Dashboard matches error: {e}")
+            self.dash_matches_table.add_row((f"Error: {str(e)[:40]}", "", "", "", ""))
         finally:
             conn.close()
-        # Quick predictions in dashboard
         self._update_dashboard_preds()
 
     def _update_dashboard_preds(self):
@@ -719,15 +743,24 @@ class ModernFootballGUI:
         self.matches_table.clear_rows()
         conn = self.get_database_connection()
         if not conn:
+            self.matches_table.add_row(("Database not found.", "Run monitor_with_database.py to collect data.", "", "", "", ""))
             return
         try:
             cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='matches'")
+            if not cur.fetchone():
+                self.matches_table.add_row(("No data yet.", "Start the monitoring system first.", "", "", "", ""))
+                return
             cur.execute("""
                 SELECT match_date, competition, home_team, away_team, status,
                        home_score, away_score
                 FROM matches ORDER BY match_date DESC LIMIT 150
             """)
-            for row in cur.fetchall():
+            rows = cur.fetchall()
+            if not rows:
+                self.matches_table.add_row(("No matches found.", "Try running monitor_with_database.py", "", "", "", ""))
+                return
+            for row in rows:
                 date = (row[0] or "")[:10]
                 score = f"{row[5]} – {row[6]}" if row[5] is not None else "vs"
                 tag = "live" if row[4] in ("IN_PLAY","PAUSED","HALFTIME","Live") else None
@@ -736,6 +769,7 @@ class ModernFootballGUI:
                      row[4] or "?", score), tag=tag)
         except Exception as e:
             print(f"Load matches error: {e}")
+            self.matches_table.add_row((f"Error: {str(e)[:50]}", "", "", "", "", ""))
         finally:
             conn.close()
 
@@ -801,15 +835,24 @@ class ModernFootballGUI:
         self.odds_table.clear_rows()
         conn = self.get_database_connection()
         if not conn:
+            self.odds_table.add_row(("No database found.", "Run monitor_with_database.py", "", "", "", ""))
             return
         try:
             cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='odds'")
+            if not cur.fetchone():
+                self.odds_table.add_row(("No odds data yet.", "Start the monitoring system.", "", "", "", ""))
+                return
             cur.execute("""
                 SELECT home_team, away_team, home_odds, draw_odds, away_odds,
                        bookmaker, last_updated
                 FROM odds ORDER BY last_updated DESC LIMIT 100
             """)
-            for row in cur.fetchall():
+            rows = cur.fetchall()
+            if not rows:
+                self.odds_table.add_row(("No odds available yet.", "Configure ODDS_API_KEY in .env", "", "", "", ""))
+                return
+            for row in rows:
                 match = f"{row[0] or '?'} vs {row[1] or '?'}"
                 h = f"{row[2]:.2f}" if row[2] else "N/A"
                 d = f"{row[3]:.2f}" if row[3] else "N/A"
@@ -818,6 +861,7 @@ class ModernFootballGUI:
                 self.odds_table.add_row((match, row[5] or "?", h, d, a, updated))
         except Exception as e:
             print(f"Odds error: {e}")
+            self.odds_table.add_row((f"Error: {str(e)[:50]}", "", "", "", "", ""))
         finally:
             conn.close()
 
@@ -827,16 +871,25 @@ class ModernFootballGUI:
         league = self.standings_league_var.get()
         conn = self.get_database_connection()
         if not conn:
+            self.standings_table.add_row(("–", "No database found. Run monitor_with_database.py", "", "", "", "", "", "", "", ""))
             return
         try:
             cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='teams'")
+            if not cur.fetchone():
+                self.standings_table.add_row(("–", "No standings data yet.", "", "", "", "", "", "", "", ""))
+                return
             cur.execute("""
                 SELECT position, name, games_played, wins, draws, losses,
                        goals_for, goals_against, points
                 FROM teams WHERE competition = ?
                 ORDER BY position
             """, (league,))
-            for row in cur.fetchall():
+            rows = cur.fetchall()
+            if not rows:
+                self.standings_table.add_row(("–", f"No data for {league}. Run the monitor to collect standings.", "", "", "", "", "", "", "", ""))
+                return
+            for row in rows:
                 gf = row[6] or 0
                 ga = row[7] or 0
                 gd = gf - ga
@@ -845,6 +898,7 @@ class ModernFootballGUI:
                      row[4] or 0, row[5] or 0, gf, ga, gd, row[8] or 0))
         except Exception as e:
             print(f"Standings error: {e}")
+            self.standings_table.add_row(("–", f"Error: {str(e)[:40]}", "", "", "", "", "", "", "", ""))
         finally:
             conn.close()
 
@@ -992,12 +1046,15 @@ class ModernFootballGUI:
 
     # ── Live Statistics ──────────────────────────────────────────────────────
     def update_live_statistics(self):
+        """Fetch live stats from API-Football. Falls back to demo data if no key."""
         api_key = os.getenv("API_FOOTBALL_KEY")
         if not api_key:
+            # Show demo data with clear notice instead of leaving an empty page
             self.stats_api_status.configure(
-                text="❌ API key required for live statistics")
+                text="⚠️ No API_FOOTBALL_KEY – showing demo data")
+            self.display_live_statistics([])  # triggers demo fallback
             return
-        self.stats_api_status.configure(text="🔄 Fetching live statistics...")
+        self.stats_api_status.configure(text="🔄 Fetching live statistics…")
 
         def fetch():
             try:
@@ -1009,14 +1066,21 @@ class ModernFootballGUI:
                     "https://api-football-v1.p.rapidapi.com/v3/fixtures",
                     headers=headers, params={"live": "all"}, timeout=10)
                 if response.status_code == 200:
-                    matches = response.json().get("response", [])
-                    self.root.after(0, lambda: self.display_live_statistics(matches))
+                    data = response.json().get("response", [])
+                    self.root.after(0, lambda d=data: self.display_live_statistics(d))
+                elif response.status_code == 403:
+                    self.root.after(0, lambda: (
+                        self.stats_api_status.configure(text="❌ API subscription required"),
+                        self.display_live_statistics([])))
                 else:
-                    self.root.after(0, lambda: self.stats_api_status.configure(
-                        text=f"❌ API Error {response.status_code}"))
+                    self.root.after(0, lambda c=response.status_code: (
+                        self.stats_api_status.configure(text=f"❌ API Error {c}"),
+                        self.display_live_statistics([])))
             except Exception as e:
-                self.root.after(0, lambda: self.stats_api_status.configure(
-                    text=f"❌ {str(e)[:35]}"))
+                err = str(e)[:40]
+                self.root.after(0, lambda: (
+                    self.stats_api_status.configure(text=f"❌ {err}"),
+                    self.display_live_statistics([])))
 
         threading.Thread(target=fetch, daemon=True).start()
 
